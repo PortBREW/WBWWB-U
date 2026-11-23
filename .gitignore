@@ -1,0 +1,13 @@
+# build output
+build/
+dist/
+*.o
+*.d
+*.elf
+*.rpx
+*.wuhb
+*.lst
+*.log
+
+# local tool state
+.freebuff/
