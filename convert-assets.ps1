@@ -1,6 +1,5 @@
 $ErrorActionPreference = 'Stop'
-# Copy the original game's sprites/ folder (github.com/ncase/wbwwb) into this directory first.
-$source = Join-Path $PSScriptRoot 'sprites'
+$source = Join-Path (Split-Path $PSScriptRoot -Parent) 'sprites'
 $assets = Join-Path $PSScriptRoot 'assets'
 $magick = (Get-Command magick -ErrorAction Stop).Source
 New-Item -ItemType Directory -Force -Path $assets | Out-Null
@@ -20,7 +19,8 @@ $needed = @(
     'credits0005','credits0006','credits0007','credits0008',
     'logo','end_button','facebook','twitter'
 )
-Get-ChildItem -LiteralPath $assets -Filter '*.bmp' | Remove-Item -Force
+Get-ChildItem -LiteralPath $assets -Filter '*.bmp' |
+    Where-Object { $_.Name -ne 'portbrew.bmp' } | Remove-Item -Force
 foreach ($name in $needed) {
     $sourceFile = Get-ChildItem -LiteralPath $source -Recurse -Filter ($name + '.png') | Select-Object -First 1
     if (-not $sourceFile) { throw "Missing original sprite: $name.png" }

@@ -312,7 +312,7 @@ void loadArt() {
         "quote0001","quote0002","quote0003","quote0004",
         "credits0001","credits0002","credits0003","credits0004",
         "credits0005","credits0006","credits0007","credits0008",
-        "logo","end_button","facebook","twitter"};
+        "logo","end_button","facebook","twitter","portbrew"};
     for (const char* n : names) {
         string file = string(n) + ".bmp";
         g_textures[n] = loadBmp(file.c_str());
@@ -3474,6 +3474,8 @@ SceneId g_scene = SceneId::Quote;
 std::unique_ptr<GameScene> g_game;
 int g_sceneTicks = 0;
 float g_cursorX = 480, g_cursorY = 270;
+// The "Ported by PortBREW" badge shows until the first photo is taken.
+bool g_hasCaptured = false;
 int g_clickTicks = 0;
 int g_windowW = 1280, g_windowH = 720;
 std::vector<SDL_GameController*> g_pads;
@@ -3554,6 +3556,7 @@ void clickAtCursor() {
     g_clickTicks = 8;
     if (g_scene == SceneId::Game && g_game) {
         if (!g_game->camera.frozen) {
+            g_hasCaptured = true;
             g_game->camera.takePhoto();
             g_game->camera.frozen = true; // Camera.js freezes for the whole sequence
             g_game->director.takePhoto(&g_game->camera);
@@ -3575,6 +3578,32 @@ void clickAtCursor() {
             }
         }
     }
+}
+
+// ---------------------------------------------------------------- watermark
+// Small "Ported by PortBREW" badge in the bottom-right corner: the logo, then the
+// text. It is drawn in screen space (so the camera shake and the 8x TV cut cannot
+// move it) and only until the player takes their first photo, so it never sits on
+// top of a capture.
+void drawWatermark() {
+    if (g_hasCaptured) return;
+    const string label = "Ported by PortBREW";
+    const float px = 11.f;                 // text height
+    const float logoH = 16.f, logoW = 16.f, gap = 7.f;
+    const float padX = 6.f, padY = 5.f;
+    const float tw = textWidth(label, px);
+    const float boxW = padX * 2.f + logoW + gap + tw;
+    const float boxH = logoH + padY * 2.f;
+    const float boxX = W - 10.f - boxW, boxY = H - 10.f - boxH;
+
+    const View saved = g_view;
+    g_view = View();                       // 960x540 screen space, not world space
+    SDL_SetRenderTarget(g_rend, nullptr);
+    fillRect(boxX, boxY, boxW, boxH, Col{0, 0, 0, 105});
+    drawTex(T("portbrew"), nullptr, boxX + padX + logoW * .5f, boxY + boxH * .5f, logoW, logoH);
+    textLine(label, boxX + padX + logoW + gap, boxY + (boxH - px) * .5f, px,
+             Col{255, 255, 255, 235});
+    g_view = saved;
 }
 
 void drawQuoteScene() {
@@ -3774,6 +3803,7 @@ void render() {
     else if (g_scene == SceneId::Credits) drawCreditsScene();
     else if (g_scene == SceneId::PostPost) drawPostPostScene();
     else if (g_game) g_game->draw();
+    drawWatermark();
     ckpt("present");
     SDL_RenderPresent(g_rend);
     ckpt("frame");
