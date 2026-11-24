@@ -2,10 +2,6 @@
 
 A native Wii U port of Nicky Case's [*We Become What We Behold*](https://ncase.itch.io/wbwwb),
 written in C++17 with [wut](https://github.com/devkitPro/wut) and SDL2.
-
-It reimplements the original JavaScript tick for tick: the same fixed 60 Hz update, the same
-timers and photo/director timing, the same strings and sprites. The one visible difference is
-that text uses a built-in 5x7 pixel font instead of the original webfont.
 ## Build
 
 Needs devkitPro (devkitPPC + `wut`) and the Wii U SDL2 portlib. In devkitPro's MSYS2 shell:
